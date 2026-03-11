@@ -54,7 +54,7 @@ export default function VisualizationCanvas() {
 
     const node = g.append("g").selectAll("g").data(nodes).enter().append("g")
       .attr("class", "cursor-pointer")
-      .on("click", (event, d) => {
+      .on("click", (_event, d) => {
         if (d.type === 'gene') {
           // FIX: Pass the original Redux object, NOT the D3 physics node
           const original = variants.find(v => v.id === d.id);
