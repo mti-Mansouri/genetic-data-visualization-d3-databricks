@@ -25,7 +25,8 @@ describe('Genomics Redux Slice', () => {
     
     const state = store.getState().genomics;
     expect(state.selectedVariant?.gene).toBe(variant.gene);
-    expect(state.aiAnalysis).toBeNull(); // Should reset analysis on new selection
+    // FIX: Check the new dictionary cache structure
+    expect(state.aiAnalyses[variant.id]).toBeUndefined(); 
   });
 
   it('should handle the AI analysis lifecycle (Pending -> Fulfilled)', async () => {
@@ -40,10 +41,13 @@ describe('Genomics Redux Slice', () => {
     // 3. Wait for the mock timer to finish
     await promise;
     
-    // 4. Check "Succeeded" state and data
+    // 4. Check "Succeeded" state and data in the CACHE
     const state = store.getState().genomics;
+    const analysisResult = state.aiAnalyses[variant.id];
+    
     expect(state.status).toBe('succeeded');
-    expect(state.aiAnalysis).toContain(variant.gene);
-    expect(state.aiAnalysis).toContain('ACMG');
+    expect(analysisResult).toBeDefined(); // Ensure it exists
+    expect(analysisResult).toContain(variant.gene);
+    expect(analysisResult).toContain('ACMG');
   });
 });
