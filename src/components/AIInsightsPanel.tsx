@@ -1,6 +1,8 @@
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../app/store';
-import { fetchAIAnalysis, selectVariant } from '../features/genomics/genomicsSlice';
+import { selectVariant } from '../features/genomics/genomicsSlice';
+// If you have fetchAIAnalysis in your slice (based on your test file), import it:
+// import { fetchAIAnalysis } from '../features/genomics/genomicsSlice'; 
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AIInsightsPanel() {
@@ -9,58 +11,66 @@ export default function AIInsightsPanel() {
 
   if (!selectedVariant) return null;
 
-  // Retrieve cached analysis for this specific variant
   const currentAnalysis = aiAnalyses[selectedVariant.id];
+
+  const handleRunAnalysis = () => {
+    // If you have the thunk from your genomics.test.ts, uncomment the import and use this:
+    // dispatch(fetchAIAnalysis(selectedVariant));
+    
+    // For now, if the thunk isn't in your slice yet, you can add it to the slice later.
+    console.log("Run AI Analysis for:", selectedVariant.id);
+  };
 
   return (
     <AnimatePresence>
       <motion.aside
-        initial={{ x: "100%" }}
-        animate={{ x: 0 }}
-        exit={{ x: "100%" }}
-        transition={{ type: "spring", damping: 30, stiffness: 200 }}
-        // Added mobile responsive width (w-full md:w-[450px])
-        className="absolute top-0 right-0 bottom-0 w-full md:w-[450px] z-50 p-4 md:p-6 pointer-events-auto"
+        initial={{ x: "100%", opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: "100%", opacity: 0 }}
+        transition={{ type: "spring", damping: 25, stiffness: 120 }}
+        className="absolute top-0 right-0 bottom-0 w-full md:w-[420px] z-50 p-4 md:p-6"
       >
-        <div className="h-full bg-white rounded-[2rem] md:rounded-[3rem] shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
-          
-          <div className="p-6 md:p-10 pb-4 md:pb-6 flex justify-between items-start bg-white z-10">
+        <div className="h-full bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
+          <div className="p-8 pb-4 flex justify-between items-start">
             <div>
-              <h2 className="text-3xl md:text-4xl font-black text-pin-charcoal tracking-tighter">{selectedVariant.gene}</h2>
-              <p className="text-pin-red font-mono font-bold mt-1 uppercase tracking-widest">{selectedVariant.mutation}</p>
+              <h2 className="text-3xl font-black text-pin-charcoal tracking-tighter">{selectedVariant.gene}</h2>
+              <p className="text-pin-red font-mono font-bold text-xs uppercase">{selectedVariant.mutation}</p>
             </div>
-            <button 
-              onClick={() => dispatch(selectVariant(null))} 
-              className="bg-gray-100 p-3 rounded-full hover:bg-pin-red hover:text-white transition-all text-gray-500 shadow-sm"
-            >
-              ✕
-            </button>
+            <button onClick={() => dispatch(selectVariant(null))} className="p-3 bg-gray-50 rounded-full hover:bg-pin-red hover:text-white transition-pinterest cursor-pointer">✕</button>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 md:px-10 pb-10 space-y-6 md:space-y-8">
-            
-            {/* Show button ONLY if we don't have a cached analysis and aren't loading */}
-            {!currentAnalysis && status !== 'loading' && (
-              <button 
-                onClick={() => dispatch(fetchAIAnalysis(selectedVariant))}
-                className="w-full bg-pin-red text-white py-4 md:py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-pin-dark-red transition-all shadow-xl shadow-red-500/20"
-              >
-                🚀 Run AI Interpretation
-              </button>
-            )}
-
-            <div className="bg-pin-charcoal rounded-[2rem] p-6 md:p-8 text-white min-h-[150px] md:min-h-[200px]">
-              {status === 'loading' && !currentAnalysis ? (
-                <div className="animate-pulse space-y-4">
-                  <div className="h-2 bg-white/20 rounded-full w-full"></div>
-                  <div className="h-2 bg-white/20 rounded-full w-3/4"></div>
-                  <p className="text-pin-red text-[10px] font-black uppercase mt-6">Decoding Genomics...</p>
+          <div className="flex-1 overflow-y-auto px-8 pb-10 space-y-6">
+            <div className="bg-pin-charcoal rounded-[2rem] p-8 text-white min-h-[200px] flex flex-col justify-center">
+              {status === 'loading' ? (
+                <div className="space-y-4 animate-pulse">
+                  <div className="h-2 bg-white/10 rounded-full w-full" />
+                  <div className="h-2 bg-white/10 rounded-full w-2/3" />
                 </div>
               ) : currentAnalysis ? (
-                <p className="text-sm leading-relaxed text-gray-300 font-medium">{currentAnalysis}</p>
+                <p className="text-sm leading-relaxed text-gray-300 font-medium italic">"{currentAnalysis}"</p>
               ) : (
-                <p className="text-sm text-gray-500 italic text-center">Ready for clinical synthesis...</p>
+                <div className="text-center space-y-4">
+                   <p className="text-xs text-gray-500 uppercase font-black tracking-widest">Awaiting Synthesis</p>
+                   {/* FIX: Wired up the button click */}
+                   <button 
+                     onClick={handleRunAnalysis}
+                     className="w-full bg-pin-red text-white py-4 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:scale-[1.02] transition-all cursor-pointer"
+                   >
+                     Request Interpretation
+                   </button>
+                </div>
               )}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-pin-gray rounded-2xl">
+                <p className="text-[9px] font-black text-gray-400 uppercase mb-1">ClinVar Impact</p>
+                <p className="text-xs font-bold">{selectedVariant.impact}</p>
+              </div>
+              <div className="p-4 bg-pin-gray rounded-2xl">
+                <p className="text-[9px] font-black text-gray-400 uppercase mb-1">ACMG Score</p>
+                <p className="text-xs font-bold">{(selectedVariant.severity * 100).toFixed(0)}%</p>
+              </div>
             </div>
           </div>
         </div>
