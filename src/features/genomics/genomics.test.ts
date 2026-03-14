@@ -1,7 +1,15 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
 import genomicsReducer, { fetchAIAnalysis, selectVariant } from './genomicsSlice';
-import { mockVariants } from '../../api/mockData';
+
+const mockVariant = {
+  id: 'v-test-1',
+  gene: 'BRCA1',
+  mutation: 'c.5266dup',
+  impact: 'High' as const,
+  phenotypes: ['Breast Cancer'],
+  severity: 0.9
+};
 
 describe('Genomics Redux Slice', () => {
   let store: any;
@@ -14,40 +22,35 @@ describe('Genomics Redux Slice', () => {
 
   it('should set the initial state correctly', () => {
     const state = store.getState().genomics;
-    expect(state.variants).toHaveLength(mockVariants.length);
+    
+    expect(state.patientIndex).toHaveLength(0);
+    expect(Object.keys(state.casesCache)).toHaveLength(0);
+    expect(state.activeCaseId).toBeNull();
     expect(state.selectedVariant).toBeNull();
     expect(state.status).toBe('idle');
   });
 
   it('should update selectedVariant when a user clicks a node', () => {
-    const variant = mockVariants[0];
-    store.dispatch(selectVariant(variant));
+    store.dispatch(selectVariant(mockVariant));
     
     const state = store.getState().genomics;
-    expect(state.selectedVariant?.gene).toBe(variant.gene);
-    // FIX: Check the new dictionary cache structure
-    expect(state.aiAnalyses[variant.id]).toBeUndefined(); 
+    expect(state.selectedVariant?.gene).toBe(mockVariant.gene);
+    expect(state.aiAnalyses[mockVariant.id]).toBeUndefined(); 
   });
 
   it('should handle the AI analysis lifecycle (Pending -> Fulfilled)', async () => {
-    const variant = mockVariants[0];
+    const promise = store.dispatch(fetchAIAnalysis(mockVariant));
     
-    // 1. Dispatch the "AI Fetch"
-    const promise = store.dispatch(fetchAIAnalysis(variant));
-    
-    // 2. Check "Loading" state immediately
     expect(store.getState().genomics.status).toBe('loading');
     
-    // 3. Wait for the mock timer to finish
     await promise;
     
-    // 4. Check "Succeeded" state and data in the CACHE
     const state = store.getState().genomics;
-    const analysisResult = state.aiAnalyses[variant.id];
+    const analysisResult = state.aiAnalyses[mockVariant.id];
     
     expect(state.status).toBe('succeeded');
-    expect(analysisResult).toBeDefined(); // Ensure it exists
-    expect(analysisResult).toContain(variant.gene);
+    expect(analysisResult).toBeDefined(); 
+    expect(analysisResult).toContain(mockVariant.gene);
     expect(analysisResult).toContain('ACMG');
   });
 });
