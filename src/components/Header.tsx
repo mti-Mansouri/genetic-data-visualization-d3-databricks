@@ -2,24 +2,26 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '../app/store';
 import { selectVariant } from '../features/genomics/genomicsSlice';
+import type { Variant } from '../types/genomics'; // FIX: Imported the Variant type
 
 export default function Header() {
   const [searchTerm, setSearchTerm] = useState('');
   const dispatch = useDispatch();
-  const variants = useSelector((state: RootState) => state.genomics.variants);
+  
+  // FIX: Safely extract variants from the currently active case in the cache
+  const { activeCaseId, casesCache } = useSelector((state: RootState) => state.genomics);
+  const activeCase = activeCaseId ? casesCache[activeCaseId] : null;
+  const variants: Variant[] = activeCase ? activeCase.variants : [];
 
   const filteredResults = searchTerm 
-    ? variants.filter(v => 
+    ? variants.filter((v: Variant) => // FIX: Added type to 'v'
         v.gene.toLowerCase().includes(searchTerm.toLowerCase()) || 
         v.mutation.toLowerCase().includes(searchTerm.toLowerCase())
       ) 
     : [];
 
   return (
-    // Added w-full and justify-end to align it properly on all screens
     <header className="mb-6 md:mb-8 flex justify-start items-center z-10 w-full">
-      
-      {/* Responsive width: full width on mobile, 96 (24rem) on desktop */}
       <div className="relative w-full md:w-96">
         <div className="group relative">
           <input 
@@ -38,7 +40,7 @@ export default function Header() {
 
         {filteredResults.length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
-            {filteredResults.map(v => (
+            {filteredResults.map((v: Variant) => ( // FIX: Added type to 'v'
               <div 
                 key={v.id}
                 onClick={() => {

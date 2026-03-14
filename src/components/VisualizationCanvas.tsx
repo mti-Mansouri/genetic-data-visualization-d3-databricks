@@ -93,7 +93,7 @@ export default function VisualizationCanvas() {
       node.attr("transform", d => `translate(${(d as any).x}, ${(d as any).y})`);
     });
 
-    return () => simulation.stop();
+    return () => {simulation.stop()};
   }, [nodes, links, dispatch]); // Notice: selectedVariant is GONE from this dependency array
 
   // EFFECT 2: Update Selection Styling (Only runs when YOU CLICK a variant)
