@@ -1,0 +1,39 @@
+name: Backend Deploy to Cloud Run
+
+on:
+  push:
+    paths: ['backend/**'] # Only run if backend code changes
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      # Use Artifact Registry (Standard for 2026)
+      - name: Build and Push Container
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/nucleus/api:${{ github.sha }} ./backend
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/nucleus/api:${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: nucleus-api
+          image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/nucleus/api:${{ github.sha }}
+          region: us-central1
+          # These inject your secrets into the live Cloud Run environment
+          env_vars: |
+            SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }}
+            DATABRICKS_HOST=${{ secrets.DATABRICKS_HOST }}
+            DATABRICKS_TOKEN=${{ secrets.DATABRICKS_TOKEN }}
