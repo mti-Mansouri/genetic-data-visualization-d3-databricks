@@ -2,7 +2,7 @@ name: Backend Deploy to Cloud Run
 
 on:
   push:
-    paths: ['backend/**'] # Only run if backend code changes
+    paths: ['backend/**']
     branches: [main]
 
 jobs:
@@ -19,21 +19,20 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      # Use Artifact Registry (Standard for 2026)
+
+      - name: Configure Docker for Turin
+        run: gcloud auth configure-docker europe-west12-docker.pkg.dev --quiet
+
       - name: Build and Push Container
         run: |
-          gcloud auth configure-docker us-central1-docker.pkg.dev
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/nucleus/api:${{ github.sha }} ./backend
-          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/nucleus/api:${{ github.sha }}
+          docker build -t europe-west12-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/nucleus/api:${{ github.sha }} ./backend
+          docker push europe-west12-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/nucleus/api:${{ github.sha }}
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: nucleus-api
-          image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/nucleus/api:${{ github.sha }}
-          region: us-central1
-          # These inject your secrets into the live Cloud Run environment
+          image: europe-west12-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/nucleus/api:${{ github.sha }}
+          region: europe-west12
           env_vars: |
             SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }}
-            DATABRICKS_HOST=${{ secrets.DATABRICKS_HOST }}
-            DATABRICKS_TOKEN=${{ secrets.DATABRICKS_TOKEN }}
