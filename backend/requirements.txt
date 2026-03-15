@@ -1,0 +1,7 @@
+fastapi==0.110.0
+uvicorn==0.27.1
+python-dotenv==1.0.1
+python-jose[cryptography]==3.3.0
+databricks-sdk==0.20.0
+# To handle CORS and web requests
+pydantic==2.6.3
