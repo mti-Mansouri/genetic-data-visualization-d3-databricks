@@ -110,13 +110,13 @@ export default function Login() {
         </p>
 
         <div className="space-y-4">
-          {/* <button
+          <button
             onClick={handleGoogleLogin}
             className="w-full bg-white text-pin-charcoal py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-gray-100 transition-all active:scale-95 cursor-pointer shadow-xl shadow-black/20"
           >
             <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="Google" />
             <span className="text-sm">Sign in with Google</span>
-          </button> */}
+          </button>
 
           <button
             onClick={handleGuestLogin}
